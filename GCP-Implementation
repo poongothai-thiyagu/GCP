@@ -1,0 +1,73 @@
+Challenge #1
+A 3 tier environment is a common setup. Use a tool of your choosing/familiarity create these resources. Please remember we will not be judging on the outcome but more on the approach, style and reproducibility.
+
+Answer:
+I have created a 3 tier environment by creating 3 layers - presentation, application and database. I have deployed NGINX as application, created load balancer for presentation and created MySQL database to store and retrieve results.
+1. Create VPC network
+2. From the GCP console, navigate to the VPC networks and create VPC network with custom subnet with IPv4 CIDR range
+3. I created a VPC network with name my-vpc and created 2 subnets – frontend-subnet, backend-subnet and database-subnet with region asia-south1 and IP range “10.0.1.0/24” and “10.0.2.0/24”
+4. Created 3 firewall rules. First rule is allow-frontend-backend to allow traffic from front end to backend. Allowed tcp:80 to allow http traffic from frontend to backend.
+5. Created firewall rule - app-db-fw-rule to allow traffic from application subnet to database subnet. I decided to use MySQL DB so created this firewall rule to allow TCP port 3306
+6. Created firewall rule – allow-ssh to allow ssh access on TCP:22
+7. Created Virtual machine to install MySQL client with custom service account, custom vpc network – my-vpc and subnet- backend-subnet. Created VM without external IP
+8. Created Cloud NAT and cloud router to connect to internet as public IP is disabled in our VM.
+9. Created Instance template to deploy NGINX web server with custom service account, custom vpc network – my-vpc and subnet - frontend-subnet and created Managed Instance group with autoscaling enabled to serve the traffic to web server
+10. Created Load balancer and configured Global HTTP(s) load balancer and enabled CDN, created backend with the unmanaged instance group and Front end with protocol-http and port-80
+11. Created Cloud SQL in the same region as load balancer with latest database version and private IP, In authorized networks added Load balancer IP
+12. Created a user and password
+13. I checked the database if it stores the results of web server by login to the Database with the above created credentials
+
+Challenge #2
+We need to write code that will query the meta data of an instance within AWS and provide a json formatted output. The choice of language and implementation is up to you.
+
+Answer:
+I have created a Linux VM with network tags and tried to query the metadata to get the network tags using curl method. 
+1. To query the metadata programmatically I used curl for linux VM
+2. Created firewall rule as allow-firewall to allow only required IP range, I have whitelisted my IP to access the VM and allowed ssh access on port 22, created tag as allow-access
+3. I created a Linux VM with custom service account, disabled external IP, custom VPC and applied the network tag - allow-access
+4. I connected to the Linux instance and used Curl to make a query
+5. To query the network tag of the VM metadata I used the below query
+curl "http://metadata.google.internal/computeMetadata/v1/instance/tags" -H "Metadata-Flavor: Google"
+6. The output is [“allow-access”]
+7. By default, this returns a JSON format output. For other endpoints JSON format can be mentioned in the query, Please refer below
+curl "http://metadata.google.internal/computeMetadata/v1/instance/tags?alt=json" -H "Metadata-Flavor: Google"
+ 
+Challenge #3
+We have a nested object, we would like a function that you pass in the object and a key and get back the value. How this is implemented is up to you.
+Example Inputs
+object = {“a”:{“b”:{“c”:”d”}}}
+key = a/b/c
+object = {“x”:{“y”:{“z”:”a”}}}
+key = x/y/z
+value = a
+
+Answer:
+I have used python to implement the logic.
+• This code defines a function named get_value that takes two arguments: an object obj and a key key. The function retrieves the value associated with the given key in the object.
+• The key is a string in which the parts of the path to the desired value are separated by the slash (/) character. The function splits this string into parts using the split() method and then iteratively accesses each nested object in the path until the final value is reached.
+• In the first example, obj1 is a dictionary object containing nested dictionaries. The key to access the final value "d" is "a/b/c". The get_value function splits this key into parts "a", "b", and "c" and then retrieves the final value "d" by accessing the nested dictionaries in the path obj["a"]["b"]["c"].
+. In the second example, obj2 is another dictionary object containing nested dictionaries, and the key to access the final value "a" is "x/y/z". The get_value function follows the same process as before and returns the final value by accessing the nested dictionaries in the path obj["x"]["y"]["z"].
+• Finally, the retrieved values are printed using the print() function
+
+Code: 
+def get_value(obj, key):
+   for k in key.split('/'):
+       obj = obj[k]
+   return obj
+ 
+obj1 = {"a": {"b": {"c": "d"}}}
+key1 = "a/b/c"
+ 
+obj2 = {"x": {"y": {"z": "a"}}}
+key2 = "x/y/z"
+ 
+value1 = get_value(obj1, key1)
+print(value1)  # Output: d
+ 
+value2 = get_value(obj2, key2)
+print(value2)  # Output: a
+
+
+Output:
+output 1 : d
+output 2: a
