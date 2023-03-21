@@ -70,4 +70,4 @@ print(value2)  # Output: a
 
 Output:
 output 1 : d
-output 2: a
+output 2 : a
